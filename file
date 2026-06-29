@@ -1,0 +1,6 @@
+git init
+git add .
+git commit -m "feat: AI chat app"
+git branch -M main
+git remote add origin https://github.com/TEN_BAN/TEN_REPO.git
+git push -u origin main
