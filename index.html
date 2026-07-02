@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign in to HỆ THỐNG XÁC THỰC TẬP TRUNG</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #4a7c59 url("assets/bg-DR-sm8AV.jpg") center/cover no-repeat;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .box {
+        background: #fff;
+        width: 100%;
+        max-width: 480px;
+        border-radius: 12px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      .header {
+        text-align: center;
+        padding: 24px 32px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .header img {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 12px;
+      }
+
+      .header h1 {
+        font-size: 16px;
+        margin: 0;
+        line-height: 1.4;
+        color: #111;
+        white-space: normal;
+        word-break: break-word;
+      }
+
+      .header p {
+        font-size: 14px;
+        color: #777;
+        margin: 4px 0 0;
+      }
+
+      .body {
+        padding: 24px 32px;
+      }
+
+      label {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 4px;
+        color: #333;
+      }
+
+      input[type="text"],
+      textarea {
+        width: 100%;
+        padding: 8px 12px;
+        margin-bottom: 16px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+
+      #username {
+        resize: none;
+        min-height: 36px;
+        max-height: 140px;
+        line-height: 1.4;
+        overflow-y: auto;
+      }
+
+      .password-box {
+        position: relative;
+      }
+
+      #answer-box {
+        resize: none;
+        min-height: 36px;
+        max-height: 140px;
+        overflow-y: auto;
+        background: #fff;
+        color: #222;
+        line-height: 1.4;
+        white-space: pre-wrap;
+        cursor: text;
+      }
+
+      #answer-box::placeholder {
+        color: #aaa;
+      }
+
+      #answer-box.copied {
+        border-color: #16a34a;
+      }
+
+      .password-box button {
+        position: absolute;
+        right: 10px;
+        top: 8px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        color: #888;
+      }
+
+      .password-box button:hover {
+        color: #16a34a;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        font-size: 14px;
+      }
+
+      .row a {
+        color: #16a34a;
+        text-decoration: none;
+      }
+
+      button.login {
+        width: 100%;
+        padding: 10px;
+        background: #16a34a;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
+      button.login:hover {
+        background: #15803d;
+      }
+
+      button.login:disabled {
+        background: #86c9a0;
+        cursor: not-allowed;
+      }
+
+      .divider {
+        text-align: center;
+        color: #888;
+        font-size: 13px;
+        margin: 20px 0;
+        position: relative;
+      }
+
+      .divider::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        border-top: 1px solid #eee;
+        z-index: 0;
+      }
+
+      .divider span {
+        background: #fff;
+        padding: 0 10px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .google-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        text-decoration: none;
+        color: #333;
+        font-size: 14px;
+      }
+
+      .google-btn:hover {
+        background: #f9f9f9;
+      }
+
+      #toast {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%) translateY(10px);
+        background: #111;
+        color: #34d399;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        opacity: 0;
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+        pointer-events: none;
+        z-index: 99;
+      }
+      #toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <div class="header">
+        <img src="assets/logo-oXR0A1xp.png" alt="Logo" />
+        <h1>HỆ THỐNG XÁC THỰC TẬP TRUNG</h1>
+        <p>Đăng nhập tài khoản</p>
+      </div>
+
+      <div class="body">
+        <form
+          id="login-form"
+          action="#"
+          method="post"
+          autocomplete="off"
+          spellcheck="false"
+        >
+          <label for="username">Email</label>
+          <textarea
+            id="username"
+            name="username"
+            rows="1"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+          ></textarea>
+
+          <label for="answer-box">Mật khẩu</label>
+          <div class="password-box">
+            <textarea id="answer-box" name="password" readonly></textarea>
+            <button type="button" id="copy-btn" title="Copy đáp án"></button>
+          </div>
+
+          <div class="row">
+            <label
+              ><input type="checkbox" name="rememberMe" /> Ghi nhớ đăng
+              nhập</label
+            >
+            <a href="#">Quên mật khẩu?</a>
+          </div>
+          <button type="submit" class="login" id="send-btn">Đăng nhập</button>
+        </form>
+
+        <div class="divider"><span>Or sign in with</span></div>
+
+        <a href="#" class="google-btn" onclick="return false;">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path
+              fill="#4285F4"
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+            />
+            <path
+              fill="#34A853"
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+            />
+            <path
+              fill="#EA4335"
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+            />
+          </svg>
+          Google
+        </a>
+      </div>
+    </div>
+
+    <div id="toast">✓ Đã copy!</div>
+
+    <script>
+      const form = document.getElementById("login-form");
+      const question = document.getElementById("username");
+      const answerBox = document.getElementById("answer-box");
+      const sendBtn = document.getElementById("send-btn");
+      const copyBtn = document.getElementById("copy-btn");
+      const toast = document.getElementById("toast");
+
+      let loading = false;
+      let lastAnswer = "";
+
+      // Auto-resize câu hỏi
+      question.addEventListener("input", () => {
+        question.style.height = "auto";
+        question.style.height = Math.min(question.scrollHeight, 140) + "px";
+      });
+
+      // Enter để gửi, Shift+Enter xuống dòng
+      question.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          send();
+        }
+      });
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        send();
+      });
+
+      function showToast(msg = "✓ Đã copy!") {
+        toast.textContent = msg;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2000);
+      }
+
+      // Click vào ô đáp án để copy
+      answerBox.addEventListener("click", () => {
+        if (!lastAnswer) return;
+        navigator.clipboard.writeText(lastAnswer).then(() => {
+          answerBox.classList.add("copied");
+          showToast();
+          setTimeout(() => answerBox.classList.remove("copied"), 1200);
+        });
+      });
+
+      copyBtn.addEventListener("click", () => {
+        if (!lastAnswer) return;
+        navigator.clipboard.writeText(lastAnswer).then(() => showToast());
+      });
+
+      async function send() {
+        const text = question.value.trim();
+        if (!text || loading) return;
+
+        loading = true;
+        sendBtn.disabled = true;
+        sendBtn.textContent = "Đang xử lý...";
+        answerBox.value = "";
+        answerBox.placeholder = "Đang xử lý...";
+
+        try {
+          const res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: text }),
+          });
+          const data = await res.json();
+          const answer =
+            data.answer || data.error || "Không nhận được phản hồi.";
+          lastAnswer = answer;
+          answerBox.value = answer;
+        } catch (err) {
+          const errMsg = "⚠️ Lỗi kết nối. Kiểm tra server đang chạy chưa?";
+          lastAnswer = errMsg;
+          answerBox.value = errMsg;
+        }
+
+        loading = false;
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Đăng nhập";
+      }
+    </script>
+  </body>
+</html>
