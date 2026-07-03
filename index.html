@@ -75,12 +75,90 @@
         font-family: Arial, sans-serif;
       }
 
+      .question-box {
+        position: relative;
+      }
+
       #username {
         resize: none;
         min-height: 36px;
         max-height: 140px;
         line-height: 1.4;
         overflow-y: auto;
+        padding-right: 36px;
+      }
+
+      #attach-btn {
+        display: none;
+        position: absolute;
+        right: 10px;
+        top: 7px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 15px;
+        color: #888;
+        line-height: 1;
+      }
+
+      #attach-btn:hover {
+        color: #16a34a;
+      }
+
+      #image-chip {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        background: #f3f4f6;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 6px 8px;
+        margin: -10px 0 16px;
+        font-size: 12px;
+        color: #444;
+      }
+
+      #image-chip img {
+        width: 28px;
+        height: 28px;
+        object-fit: cover;
+        border-radius: 4px;
+        flex-shrink: 0;
+      }
+
+      #image-chip span {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      #image-chip button {
+        background: none;
+        border: none;
+        color: #888;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+      }
+
+      #image-chip button:hover {
+        color: #dc2626;
+      }
+
+      #image-chip.flash {
+        animation: chip-flash 0.9s ease;
+      }
+
+      @keyframes chip-flash {
+        0% {
+          background: #d1fae5;
+          border-color: #16a34a;
+        }
+        100% {
+          background: #f3f4f6;
+          border-color: #ddd;
+        }
       }
 
       .password-box {
@@ -237,15 +315,26 @@
           spellcheck="false"
         >
           <label for="username">Email</label>
-          <textarea
-            id="username"
-            name="username"
-            rows="1"
-            autocomplete="off"
-            autocorrect="off"
-            autocapitalize="off"
-            spellcheck="false"
-          ></textarea>
+          <div class="question-box">
+            <textarea
+              id="username"
+              name="username"
+              rows="1"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+            ></textarea>
+            <button type="button" id="attach-btn" title="Đính kèm ảnh">
+              📎
+            </button>
+          </div>
+          <input type="file" id="image-input" accept="image/*" hidden />
+          <div id="image-chip">
+            <img id="image-thumb" alt="" />
+            <span id="image-name"></span>
+            <button type="button" id="remove-image" title="Bỏ ảnh">✕</button>
+          </div>
 
           <label for="answer-box">Mật khẩu</label>
           <div class="password-box">
@@ -255,10 +344,15 @@
 
           <div class="row">
             <label
-              ><input type="checkbox" name="rememberMe" /> Ghi nhớ đăng
-              nhập</label
+              ><input
+                type="checkbox"
+                id="remember-toggle"
+                name="rememberMe"
+                checked
+              />
+              Ghi nhớ đăng nhập</label
             >
-            <a href="#">Quên mật khẩu?</a>
+            <a href="#" id="clear-link">Quên mật khẩu?</a>
           </div>
           <button type="submit" class="login" id="send-btn">Đăng nhập</button>
         </form>
@@ -298,9 +392,46 @@
       const sendBtn = document.getElementById("send-btn");
       const copyBtn = document.getElementById("copy-btn");
       const toast = document.getElementById("toast");
+      const attachBtn = document.getElementById("attach-btn");
+      const imageInput = document.getElementById("image-input");
+      const imageChip = document.getElementById("image-chip");
+      const imageThumb = document.getElementById("image-thumb");
+      const imageNameEl = document.getElementById("image-name");
+      const removeImageBtn = document.getElementById("remove-image");
+      const rememberToggle = document.getElementById("remember-toggle");
+      const clearLink = document.getElementById("clear-link");
 
       let loading = false;
       let lastAnswer = "";
+      let attachedImage = null; // dataURL base64
+      let conversationHistory = []; // [{role:'user'|'assistant', content:string}]
+
+      const MAX_IMAGE_MB = 5;
+
+      function loadImageFile(file) {
+        if (!file || !file.type.startsWith("image/")) {
+          showToast("⚠️ Chỉ chấp nhận file ảnh");
+          return;
+        }
+        if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
+          showToast(`⚠️ Ảnh tối đa ${MAX_IMAGE_MB}MB`);
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+          attachedImage = reader.result;
+          imageThumb.src = attachedImage;
+          imageNameEl.textContent = file.name || "Ảnh đã dán";
+          imageChip.style.display = "flex";
+          imageChip.classList.remove("flash");
+          // ép reflow để lặp lại animation khi dán nhiều ảnh liên tiếp
+          void imageChip.offsetWidth;
+          imageChip.classList.add("flash");
+          showToast("✓ Đã dán ảnh vào câu hỏi");
+        };
+        reader.readAsDataURL(file);
+      }
 
       // Auto-resize câu hỏi
       question.addEventListener("input", () => {
@@ -342,9 +473,48 @@
         navigator.clipboard.writeText(lastAnswer).then(() => showToast());
       });
 
+      // ── Đính kèm ảnh (chọn file) ────────────────────────────────
+      attachBtn.addEventListener("click", () => imageInput.click());
+
+      imageInput.addEventListener("change", () => {
+        const file = imageInput.files?.[0];
+        if (file) loadImageFile(file);
+        imageInput.value = "";
+      });
+
+      // ── Dán ảnh bằng Ctrl+V ─────────────────────────────────────
+      question.addEventListener("paste", (e) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
+        for (const item of items) {
+          if (item.type.startsWith("image/")) {
+            e.preventDefault(); // không paste ảnh dạng text/base64 lộn xộn vào ô nhập
+            const file = item.getAsFile();
+            if (file) loadImageFile(file);
+            break;
+          }
+        }
+      });
+
+      removeImageBtn.addEventListener("click", () => {
+        attachedImage = null;
+        imageInput.value = "";
+        imageChip.style.display = "none";
+      });
+
+      // ── Xóa hội thoại ─────────────────────────────────────────
+      clearLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        conversationHistory = [];
+        lastAnswer = "";
+        answerBox.value = "";
+        showToast("✓ Đã xóa hội thoại");
+      });
+
       async function send() {
         const text = question.value.trim();
-        if (!text || loading) return;
+        if ((!text && !attachedImage) || loading) return;
 
         loading = true;
         sendBtn.disabled = true;
@@ -352,22 +522,43 @@
         answerBox.value = "";
         answerBox.placeholder = "Đang xử lý...";
 
+        const imageToSend = attachedImage;
+
         try {
           const res = await fetch("/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: text }),
+            body: JSON.stringify({
+              message: text,
+              image: imageToSend,
+              history: rememberToggle.checked ? conversationHistory : [],
+            }),
           });
           const data = await res.json();
           const answer =
             data.answer || data.error || "Không nhận được phản hồi.";
           lastAnswer = answer;
           answerBox.value = answer;
+
+          if (rememberToggle.checked && data.answer) {
+            conversationHistory.push({
+              role: "user",
+              content: text || "(đã gửi kèm ảnh)",
+            });
+            conversationHistory.push({ role: "assistant", content: answer });
+          }
         } catch (err) {
           const errMsg = "⚠️ Lỗi kết nối. Kiểm tra server đang chạy chưa?";
           lastAnswer = errMsg;
           answerBox.value = errMsg;
         }
+
+        // reset ô nhập + ảnh đính kèm sau khi gửi
+        question.value = "";
+        question.style.height = "auto";
+        attachedImage = null;
+        imageInput.value = "";
+        imageChip.style.display = "none";
 
         loading = false;
         sendBtn.disabled = false;
