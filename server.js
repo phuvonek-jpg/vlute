@@ -167,7 +167,10 @@ async function callGemini(message, image, history, res) {
 }
 
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
-
+// Luôn trả về index.html cho mọi đường dẫn (SPA)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
 app.listen(PORT, () => {
   console.log(`\n✦ AI Chat đang chạy tại http://localhost:${PORT}`);
   console.log(`  Mô hình: ${MODEL}`);
